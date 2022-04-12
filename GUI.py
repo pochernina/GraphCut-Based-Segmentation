@@ -3,16 +3,6 @@ from tkinter.filedialog import askopenfilename
 from PIL import Image, ImageTk
 import GraphCut
 
-'''
-GraphCut1 - начальная версия
-GraphCut2 - 4-связность, greyscale, доп вес (на границе)
-GraphCut3 - 6-связность, greyscale, доп вес
-GraphCut4 - 8-связность, greyscale, доп вес, работает плохо почему-то :(
-GraphCut5 - 6-связность, greyscale, красивая маска!
-
-продолжаю с третьей версией
-'''
-
 button_color = 'plum'
 
 cnvs_img = None

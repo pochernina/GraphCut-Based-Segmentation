@@ -1,4 +1,3 @@
-from audioop import add
 import numpy as np
 from PIL import Image
 import pymaxflow
@@ -53,7 +52,6 @@ def graphcut_segment(img, fg_pixels, bg_pixels):
         return fg_weights, bg_weights
 
 
-    # a color image to greyscale then to array
     im = np.array(img.convert('L')) 
 
     indexes = np.arange(im.size, dtype=np.int32).reshape(im.shape)
@@ -86,32 +84,6 @@ def graphcut_segment(img, fg_pixels, bg_pixels):
     e1 = indexes[1:, :].ravel()
     e2 = indexes[:-1, :].ravel()
     add_edges(graph, e1, e2, 0 * weights, alpha * weights)
-    
-    '''
-    # adjacent right and down
-    weights = (adj_dist(im[1:, 1:], im[:-1, :-1])).astype(np.float32).ravel()
-    e1 = indexes[:-1, :-1].ravel()
-    e2 = indexes[1:, 1:].ravel()
-    add_edges(graph, e1, e2, alpha * weights, 0 * weights)
-
-    # adjacent left and up
-    weights = (adj_dist(im[:-1, :-1], im[1:, 1:])).astype(np.float32).ravel()
-    e1 = indexes[1:, 1:].ravel()
-    e2 = indexes[:-1, :-1].ravel()
-    add_edges(graph, e1, e2, 0 * weights, alpha * weights)
-
-    # adjacent right and up
-    weights = (adj_dist(im[1:, :-1], im[:-1, 1:])).astype(np.float32).ravel()
-    e1 = indexes[:-1, 1:].ravel()
-    e2 = indexes[1:, :-1].ravel()
-    add_edges(graph, e1, e2, alpha * weights, 0 * weights)
-
-    # adjacent left and down
-    weights = (adj_dist(im[:-1, 1:], im[1:, :-1])).astype(np.float32).ravel()
-    e1 = indexes[1:, :-1].ravel()
-    e2 = indexes[:-1, 1:].ravel()
-    add_edges(graph, e1, e2, 0 * weights, alpha * weights)
-    '''
     
     fg_weights, bg_weights = term_weights(im, fg_pixels, bg_pixels)
     add_term_edges(graph, indexes.ravel(), fg_weights.astype(np.float32).ravel(),
