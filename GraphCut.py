@@ -85,6 +85,7 @@ def graphcut_segment(img, fg_pixels, bg_pixels):
     e2 = indexes[:-1, :].ravel()
     add_edges(graph, e1, e2, 0 * weights, alpha * weights)
     
+    
     fg_weights, bg_weights = term_weights(im, fg_pixels, bg_pixels)
     add_term_edges(graph, indexes.ravel(), fg_weights.astype(np.float32).ravel(),
                                            bg_weights.astype(np.float32).ravel())
@@ -107,7 +108,7 @@ def predict(img, fg_pixels, bg_pixels):
     mask_a[mask==0] = (0, 0, 255)
     mask_a[mask==1] = (255, 0, 0)
     mask_a = Image.fromarray(mask_a.astype('uint8'), 'RGB')
-    mask_a.putalpha(130)
+    mask_a.putalpha(77)
 
     img_a = img.copy()
     img_a.putalpha(255)
