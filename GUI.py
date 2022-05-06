@@ -1,10 +1,7 @@
 import tkinter as tk
 from tkinter.filedialog import askopenfilename
-from turtle import st
 from PIL import Image, ImageTk
 import GraphCut
-
-# image max size: 1351 * 738   =>  1320 * 730 
 
 button_color = 'plum'
 
@@ -67,7 +64,7 @@ def clear_canvas():
     fg_pixels = []
 
 def predict(event):
-    global img, ph_mask, image_contain
+    global ph_mask
     if (len(bg_pixels) * len(fg_pixels)):
         mask = GraphCut.predict(img, fg_pixels, bg_pixels)
         ph_mask = ImageTk.PhotoImage(mask)

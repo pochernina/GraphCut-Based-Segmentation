@@ -2,13 +2,9 @@ import numpy as np
 from PIL import Image
 import pymaxflow
 
-def graphcut_segment(img, fg_pixels, bg_pixels):
-    # parameters
+def graphcut_segment(img, fg_pixels, bg_pixels, alpha, sigma):
     eps = 1e-9
     infty = 1e9
-    alpha = 42
-    sigma = 1.0 / 10.0
-
 
     def create_graph(vertices_count, edges_count):
         return pymaxflow.PyGraph(vertices_count, edges_count)
@@ -33,7 +29,9 @@ def graphcut_segment(img, fg_pixels, bg_pixels):
         graph.add_tweights_vectorized(indexes, weights_up, weights_down)
 
     def adj_dist(v1, v2):
-        return np.exp(-sigma * np.abs(v1 - v2) / 2)
+        diff = np.square(v1 - v2)
+        dist = np.sqrt(diff[:, :, 0] + diff[:, :, 1] + diff[:, :, 2])
+        return np.exp(-sigma * dist / 2)
     
     def term_weights(im, fg_pixels, bg_pixels):
         fg_hist, fg_bins = np.histogram(im[fg_pixels[:, 1], fg_pixels[:, 0]],
@@ -52,45 +50,48 @@ def graphcut_segment(img, fg_pixels, bg_pixels):
         return fg_weights, bg_weights
 
 
-    im = np.array(img.convert('L')) 
+    im = np.array(img) 
+    im_grey = np.array(img.convert('L')) 
+    im_size = im.shape[0] * im.shape[1]
 
-    indexes = np.arange(im.size, dtype=np.int32).reshape(im.shape)
+    indexes = np.arange(im_size, dtype=np.int32).reshape(im.shape[:2])
+
     fg_pixels = np.array(fg_pixels, dtype=int) 
     bg_pixels = np.array(bg_pixels, dtype=int)
 
-    graph = create_graph(im.size, im.size * 4)
-    add_nodes(graph, im.size)
+    graph = create_graph(im_size, im_size * 4)
+    add_nodes(graph, im_size)
 
     # adjacent right
     weights = (adj_dist(im[:, 1:], im[:, :-1])).astype(np.float32).ravel()
     e1 = indexes[:, :-1].ravel()
     e2 = indexes[:, 1:].ravel()
-    add_edges(graph, e1, e2, alpha * weights, 0 * weights)
+    add_edges(graph, e1, e2, weights, 0 * weights)
 
     # adjacent left
     weights = (adj_dist(im[:, :-1], im[:, 1:])).astype(np.float32).ravel()
     e1 = indexes[:, 1:].ravel()
     e2 = indexes[:, :-1].ravel()
-    add_edges(graph, e1, e2, 0 * weights, alpha * weights)
+    add_edges(graph, e1, e2, 0 * weights, weights)
 
     # adjacent down
     weights = (adj_dist(im[1:, :], im[:-1, :])).astype(np.float32).ravel()
     e1 = indexes[:-1, :].ravel()
     e2 = indexes[1:, :].ravel()
-    add_edges(graph, e1, e2, alpha * weights, 0 * weights)
+    add_edges(graph, e1, e2, weights, 0 * weights)
 
     # adjacent up
     weights = (adj_dist(im[:-1, :], im[1:, :])).astype(np.float32).ravel()
     e1 = indexes[1:, :].ravel()
     e2 = indexes[:-1, :].ravel()
-    add_edges(graph, e1, e2, 0 * weights, alpha * weights)
+    add_edges(graph, e1, e2, 0 * weights, weights)
     
     
-    fg_weights, bg_weights = term_weights(im, fg_pixels, bg_pixels)
-    add_term_edges(graph, indexes.ravel(), fg_weights.astype(np.float32).ravel(),
-                                           bg_weights.astype(np.float32).ravel())
+    fg_weights, bg_weights = term_weights(im_grey, fg_pixels, bg_pixels)
+    add_term_edges(graph, indexes.ravel(), alpha * fg_weights.astype(np.float32).ravel(),
+                                           alpha * bg_weights.astype(np.float32).ravel())
 
-    # links the to source and sink
+    # links to source and sink
     set_foreground_weights(graph, fg_pixels, indexes, infty)
     set_background_weights(graph, bg_pixels, indexes, infty)
 
@@ -98,10 +99,10 @@ def graphcut_segment(img, fg_pixels, bg_pixels):
 
     mask = graph.what_segment_vectorized()
     # 0 for background, 1 for object
-    return mask.reshape(im.shape)
+    return mask.reshape(im.shape[:2])
 
-def predict(img, fg_pixels, bg_pixels):
-    mask = graphcut_segment(img, fg_pixels, bg_pixels)
+def predict(img, fg_pixels, bg_pixels, alpha=1/20, sigma=1/10):
+    mask = graphcut_segment(img, fg_pixels, bg_pixels, alpha, sigma)
 
     mask_a = img.copy()
     mask_a = np.asarray(mask_a).astype('uint8')
