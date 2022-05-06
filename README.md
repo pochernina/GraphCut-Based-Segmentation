@@ -25,6 +25,5 @@ p.s. Для данной версии `Cython` рекомендуется исп
 
 ### Примеры:
 <image src="/images/gui.png">
-/images/gui.png
 
-/images/test_10.png /images/result.png
+<image src="/images/test_10.png"> <image src="/images/result.png">
