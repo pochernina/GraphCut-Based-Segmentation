@@ -29,6 +29,6 @@ p.s. Для данной версии `Cython` рекомендуется исп
 ![](/images/test_10.png)  |  ![](/images/result.png)
 
 <p float="left">
-  <img src="/images/test_10.png" alt="Входное изображение" width="100" />
-  <img src="/images/result.png" alt="Разметка пользователя и маска" width="100" /> 
+  <img src="/images/test_10.png" alt="Входное изображение" width="300" />
+  <img src="/images/result.png" alt="Разметка пользователя и маска" width="300" /> 
 </p>
