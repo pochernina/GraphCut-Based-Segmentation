@@ -24,6 +24,7 @@ p.s. Для данной версии `Cython` рекомендуется исп
 В файле `GUI.py` реализован графический интерфейс для взаимодействия с пользователем, в `GraphCut.py` — алгоритм сегментации.
 
 ### Примеры:
+<image src="/images/gui.png">
 /images/gui.png
 
 /images/test_10.png /images/result.png
