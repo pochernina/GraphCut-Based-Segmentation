@@ -1,6 +1,18 @@
 import numpy as np
-from PIL import Image
 import pymaxflow
+
+
+def get_area(scribble, area_size, img_size):
+    x_min = min(scribble, key=lambda x: x[0])[0]
+    x_max = max(scribble, key=lambda x: x[0])[0]
+    y_min = min(scribble, key=lambda y: y[1])[1]
+    y_max = max(scribble, key=lambda y: y[1])[1]
+
+    x_left, x_right = max(0, x_min - area_size), min(img_size[0], x_max + area_size)
+    y_top, y_bottom = max(0, y_min - area_size), min(img_size[1], y_max + area_size)
+
+    return (x_left, x_right, y_top, y_bottom)
+
 
 def graphcut_segment(img, fg_pixels, bg_pixels, alpha, sigma):
     eps = 1e-9
@@ -101,20 +113,27 @@ def graphcut_segment(img, fg_pixels, bg_pixels, alpha, sigma):
     # 0 for background, 1 for object
     return mask.reshape(im.shape[:2])
 
-def predict(img, fg_pixels, bg_pixels, alpha=1/20, sigma=1/10):
-    mask = graphcut_segment(img, fg_pixels, bg_pixels, alpha, sigma)
+def predict(img, fg_pixels, bg_pixels, last_scribble, alpha=1/20, sigma=1/10):
+    area_size = 150
+    x_left, x_right, y_top, y_bottom = get_area(last_scribble, area_size, img.size)
+    
+    new_fg_pixels = [pixel for pixel in fg_pixels if x_left <= pixel[0] < x_right and y_top <= pixel[1] < y_bottom]
+    new_bg_pixels = [pixel for pixel in bg_pixels if x_left <= pixel[0] < x_right and y_top <= pixel[1] < y_bottom]
 
-    mask_a = img.copy()
-    mask_a = np.asarray(mask_a).astype('uint8')
-    mask_a[mask==0] = (0, 0, 255)
-    mask_a[mask==1] = (255, 0, 0)
-    mask_a = Image.fromarray(mask_a.astype('uint8'), 'RGB')
-    mask_a.putalpha(77)
+    if new_fg_pixels and new_bg_pixels:
+        img_patch = img.crop((x_left, y_top, x_right, y_bottom))
 
-    img_a = img.copy()
-    img_a.putalpha(255)
+        new_fg_pixels = np.array(new_fg_pixels)
+        new_fg_pixels[:, 0] -= x_left
+        new_fg_pixels[:, 1] -= y_top
+        new_bg_pixels = np.array(new_bg_pixels)
+        new_bg_pixels[:, 0] -= x_left
+        new_bg_pixels[:, 1] -= y_top
 
-    im = Image.alpha_composite(img_a, mask_a)
-    # im.save("result3.png", "PNG")
+        mask = graphcut_segment(img_patch, new_fg_pixels, new_bg_pixels, alpha, sigma)
 
-    return im
+        example = np.zeros((img.size[1], img.size[0])) - 1
+        example[y_top:y_bottom, x_left:x_right] = mask
+        return example
+    else:
+        return None
