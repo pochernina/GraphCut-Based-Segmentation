@@ -114,7 +114,7 @@ def graphcut_segment(img, fg_pixels, bg_pixels, alpha, sigma):
     return mask.reshape(im.shape[:2])
 
 def predict(img, fg_pixels, bg_pixels, last_scribble, alpha=1/20, sigma=1/10):
-    area_size = 150
+    area_size = 250
     x_left, x_right, y_top, y_bottom = get_area(last_scribble, area_size, img.size)
     
     new_fg_pixels = [pixel for pixel in fg_pixels if x_left <= pixel[0] < x_right and y_top <= pixel[1] < y_bottom]

@@ -118,7 +118,7 @@ def predict(event):
     img_a.putalpha(255)
 
     im = Image.alpha_composite(img_a, mask_a)
-    # im.save("result3.png", "PNG")
+    im.save("result.png", "PNG")
     ph_mask = ImageTk.PhotoImage(im)
     cnvs.itemconfig(image_contain, image=ph_mask)
     last_scribble = []
